@@ -115,13 +115,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ data }) => {
               color={data.cashFlow >= 0 ? "text-[#299D91]" : "text-orange-600"} 
               bg={data.cashFlow >= 0 ? "bg-teal-50" : "bg-orange-50"}
             />
-            <StatCard 
-              label="Health Score" 
-              value={`${data.healthScore}/100`} 
-              icon={Activity} 
-              color="text-blue-600" 
-              bg="bg-blue-50"
-            />
+            <HealthScoreGauge score={data.healthScore} />
           </div>
 
           {/* CHARTS ROW */}
@@ -252,3 +246,75 @@ const StatCard = ({ label, value, subValue, icon: Icon, color, bg }: any) => (
     </div>
   </div>
 );
+
+const HealthScoreGauge = ({ score }: { score: number }) => {
+  const radius = 70;
+  const stroke = 12;
+  const normalizedScore = Math.min(100, Math.max(0, score));
+  // Arc calculations: semi-circle from 180 (left) to 0 (right)
+  const arcLength = Math.PI * radius;
+  const arcOffset = arcLength * ((100 - normalizedScore) / 100);
+  
+  let color = "#22c55e"; // green-500
+  let label = "Excellent";
+  let labelColor = "text-green-500";
+  let bgLabel = "bg-green-100";
+  
+  if (score < 60) {
+    color = "#ef4444"; // red-500
+    label = "Poor";
+    labelColor = "text-red-600";
+    bgLabel = "bg-red-100";
+  } else if (score < 80) {
+    color = "#f59e0b"; // amber-500
+    label = "Fair";
+    labelColor = "text-amber-600";
+    bgLabel = "bg-amber-100";
+  }
+
+  return (
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow flex flex-col justify-between">
+       <div className="w-full flex justify-between items-start mb-4">
+         <div>
+           <p className="text-slate-500 text-sm font-medium mb-1">Health Score</p>
+           <div className="flex items-baseline gap-1">
+             <h4 className="text-3xl font-bold text-slate-900">{score}</h4>
+             <span className="text-sm text-slate-400">/100</span>
+           </div>
+         </div>
+         <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${bgLabel} ${labelColor}`}>
+           {label}
+         </span>
+       </div>
+      
+      <div className="relative flex items-center justify-center pb-2">
+         <svg width="160" height="85" viewBox="0 0 160 85" className="overflow-visible">
+            {/* Background Track */}
+            <path 
+               d="M 10,80 A 70,70 0 0 1 150,80"
+               fill="none"
+               stroke="#f1f5f9"
+               strokeWidth={stroke}
+               strokeLinecap="round"
+            />
+            {/* Progress Track */}
+            <path 
+               d="M 10,80 A 70,70 0 0 1 150,80"
+               fill="none"
+               stroke={color}
+               strokeWidth={stroke}
+               strokeLinecap="round"
+               strokeDasharray={`${arcLength} ${arcLength}`}
+               strokeDashoffset={arcOffset}
+               className="transition-all duration-1000 ease-out"
+            />
+            {/* Needle */}
+            <circle cx="80" cy="80" r="4" fill="#94a3b8" />
+            <g transform={`translate(80, 80) rotate(${(normalizedScore / 100) * 180 - 90})`} className="transition-transform duration-1000 ease-out">
+               <path d="M -4,0 L 0,-65 L 4,0 Z" fill="#475569" />
+            </g>
+         </svg>
+      </div>
+    </div>
+  );
+};
